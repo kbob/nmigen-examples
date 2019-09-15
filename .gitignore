@@ -1,0 +1,6 @@
+build/
+__pycache_/
+*.vcd
+*.gtkw
+*.pyc
+*.v
