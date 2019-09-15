@@ -191,3 +191,32 @@ the ports to pins.  Each directory will have a build script;
 its exact function is TBD.
 
 That will get me started, I think.
+
+# How to Use
+
+There are two directories (as discussed ad nauseum above).  `lib` and `apps`.
+
+In the `lib` directory, you can simulate a module or generate Verilog from it.
+See the README in that directory.
+
+The `apps` directory has a subdirectory for each app.  Each app
+creates a complete FPGA bitstream for one platform and installs it.
+(All my apps are for the iCEBreaker FPGA at present.)  There's only
+one way to use it -- run `./build.sh`.  See the README.
+
+
+## What's this nmigen command in the READMEs and build scripts?
+
+That's a shell script I have in my path.  It invokes python in the
+virtualenv where nmigen is installed.  My implementation is complicated &mdash;
+you don't want to know.  It's more or less equivalent to this, though.
+
+```sh
+#!/bin/sh
+export VIRTUAL_ENV=/path/to/nmigen/virtualenv
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+unset PYTHONHOME
+python ${1+"$@"}
+```
+
+I recommend putting a script like that in your path.
