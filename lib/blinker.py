@@ -1,3 +1,5 @@
+#!/usr/bin/env nmigen
+
 from nmigen import *
 from nmigen.cli import main
 
