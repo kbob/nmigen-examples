@@ -1,7 +1,10 @@
+#!/usr/bin/env nmigen
+
 from nmigen import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
 from lib.blinker import Blinker
+
 
 class Top(Elaboratable):
 
@@ -12,6 +15,7 @@ class Top(Elaboratable):
         m.submodules += bink
         m.d.comb += led.eq(bink.led)
         return m
+
 
 if __name__ == '__main__':
     platform = ICEBreakerPlatform()
