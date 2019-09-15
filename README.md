@@ -143,7 +143,7 @@ $ nmigen make.py prog tricorder
 I kind of like that.  It's a lot of work, though.
 
 
-# How does Boneless do it?
+## How does Boneless do it?
 
 Boneless is a tiny 16 bit CPU written in nMigen.  It is organized
 as a Python module, and it has one example which instantiates it for
@@ -156,10 +156,38 @@ if __name__ == "__main__":
 ```
 
 
-# How does Glasgow do it?
+## How does Glasgow do it?
 
 Glasgow is a hardware Swiss army chainsaw tool.  It uses nMigen
 implicitly -- when needed, it builds and installs an FPGA bitstream
 as a side effect of whatever it's trying to do.
 The build process is much more complicated than anything I want
 to write.
+
+
+## How am I going to do it?
+
+The file layout will look like this, I think.
+
+    /
+    /README.md (this file)
+    /apps
+    /apps/tricorder
+    /apps/tricorder/tricorder.py
+    /apps/tricover/build.sh
+    /apps/sonic-screwdriver
+    /apps/sonic-screwdriver/sonic-screwdriver.py
+    /apps/sonic-screwdriver/build.sh
+    /lib
+    /lib/uart.py
+    /lib/cordic.py
+
+The bulk of the code will be in /lib.  Each file will
+have the usual CLI interface for generation and simulation.
+Some will have more extensive simulation.
+
+The apps in /apps will tie a program to a platform and bind
+the ports to pins.  Each directory will have a build script;
+its exact function is TBD.
+
+That will get me started, I think.
