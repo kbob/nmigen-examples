@@ -42,7 +42,7 @@ class PLL(Elaboratable):
             self.clk_pin,
             self.domain.clk,
             self.domain.rst,
-            ]
+        ]
 
     def _calc_freq_coefficients(self):
         # cribbed from Icestorm's icepll.

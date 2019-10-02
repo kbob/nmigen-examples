@@ -32,7 +32,7 @@ class Top(Elaboratable):
             pll.clk_pin.eq(clk_pin),
             led0.eq(bink0.led),
             led1.eq(bink1.led),
-            ]
+        ]
         return m
 
 
