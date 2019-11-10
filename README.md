@@ -146,8 +146,8 @@ I recommend putting a script like that in your path.
 By default, yosys does not infer DSP slices for multiplication.
 (*i.e.*, it does not use DSPs to implement multiply ops.)
 
-You can enable DSP inference by setting the NMIGEN_synth_opts
-environment variable to "-dsp".
+You can enable DSP inference by setting the `NMIGEN_synth_opts`
+environment variable to `-dsp`.
 
 ```sh
 $ NMIGEN_synth_opts=-dsp nmigen my-app.py
