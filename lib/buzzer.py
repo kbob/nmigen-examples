@@ -3,7 +3,6 @@
 import argparse
 
 from nmigen import *
-from nmigen.back import verilog, pysim
 from lib.util.main import Main
 
 class Buzzer(Elaboratable):

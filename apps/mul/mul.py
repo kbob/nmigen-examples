@@ -1,5 +1,7 @@
 #!/usr/bin/env nmigen
 
+import os
+
 from nmigen import *
 from nmigen.cli import main
 from nmigen_boards.icebreaker import ICEBreakerPlatform
@@ -7,9 +9,9 @@ from nmigen_boards.icebreaker import ICEBreakerPlatform
 class Mul(Elaboratable):
 
     def __init__(self):
-        self.a = Signal((16, True))
-        self.b = Signal((16, True))
-        self.c = Signal((32, True))
+        self.a = Signal(signed(16))
+        self.b = Signal(signed(16))
+        self.c = Signal(signed(32))
 
     def elaborate(self, platform):
 
@@ -19,11 +21,6 @@ class Mul(Elaboratable):
         ]
         return m
 
-
-# if __name__ == '__main__':
-#     mul = Mul()
-#     main(mul, ports=[mul.a, mul.b, mul.c])
-#     exit()
 
 class Top(Elaboratable):
 
@@ -46,6 +43,9 @@ class Top(Elaboratable):
 
 
 if __name__ == '__main__':
+
+    # Force Yosys to use DSP slices.
+    os.environ['NMIGEN_synth_opts'] = '-dsp'
 
     platform = ICEBreakerPlatform()
     platform.add_resources(platform.break_off_pmod)
