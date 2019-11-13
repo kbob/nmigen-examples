@@ -3,7 +3,7 @@
 import argparse
 
 from nmigen import *
-from nmigen.back import verilog, pysim
+from lib.util.main import Main
 
 class Counter(Elaboratable):
 
@@ -36,6 +36,18 @@ class Counter(Elaboratable):
 
 
 if __name__ == '__main__':
+    design = Counter(5)
+    with Main(design).sim as sim:
+        @sim.sync_process
+        def sample_gen_proc():
+            def is_prime(n):
+                return n >= 2 and all(n % k for k in range(2, n))
+            for i in range(40):
+                yield design.trg.eq(not is_prime(i))
+                yield
+
+
+if __name__ == 'XXX__main__':
     def cheap_parser():
         parser = argparse.ArgumentParser()
         p_action = parser.add_subparsers(dest='action')
