@@ -1,5 +1,6 @@
 from nmigen import *
 from nmigen.cli import *
+from lib.util.main import Main
 
 class DigitPattern(Elaboratable):
 
@@ -67,4 +68,11 @@ class DigitPattern(Elaboratable):
 
 if __name__ == '__main__':
     digit_pattern = DigitPattern()
-    main(digit_pattern, ports= digit_pattern.ports)
+
+    # Main(digit_pattern).run()
+    with Main(digit_pattern).sim as sim:
+        @sim.sync_process
+        def digits_proc():
+            for i in range(0x10):
+                yield digit_pattern.digit_in.eq(i)
+                yield
