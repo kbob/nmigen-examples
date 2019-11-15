@@ -6,6 +6,7 @@ from nmigen_boards.icebreaker import ICEBreakerPlatform
 
 from lib.counter import Counter
 from lib.timer import Timer
+from lib.mul import Mul
 from lib.seven_segment.digit_pattern import DigitPattern
 from lib.seven_segment.driver import SevenSegDriver
 
@@ -14,25 +15,30 @@ class Top(Elaboratable):
 
     def elaborate(self, platform):
         seg7_pins = platform.request('seg7', 0)
+        pwm = Signal(16)
 
         clk_freq = platform.default_clk_frequency
         min_refresh_freq = 100
-        count_freq = 4
-        (type(clk_freq))
+        count_freq = 10
+        pwm_width = 12
 
         m = Module()
         ticker = Timer(period=int(clk_freq // count_freq))
         counter = Counter(period=16 * 16)
         ones_segs = DigitPattern()
         tens_segs = DigitPattern()
-        driver = SevenSegDriver(clk_freq, min_refresh_freq)
-        m.submodules += [ticker, counter, ones_segs, tens_segs, driver]
+        squarer = Mul()
+        driver = SevenSegDriver(clk_freq, min_refresh_freq, pwm_width)
+        m.submodules += [ticker, counter, squarer,
+                         ones_segs, tens_segs, driver]
 
         m.d.comb += [
             counter.trg.eq(ticker.stb),
             ones_segs.digit_in.eq(counter.counter[:4]),
             tens_segs.digit_in.eq(counter.counter[4:]),
-            driver.pwm.eq(~0),
+            squarer.multiplicand.eq(counter.counter),
+            squarer.multiplier.eq(counter.counter),
+            driver.pwm.eq(squarer.product[16 - pwm_width:]),
             driver.segment_patterns[0].eq(ones_segs.segments_out),
             driver.segment_patterns[1].eq(tens_segs.segments_out),
             seg7_pins.eq(driver.seg7),
