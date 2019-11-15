@@ -51,7 +51,7 @@ class SevenSegDriver(Elaboratable):
                 ]
             with m.Else():
                 m.d.sync += [
-                    self.seg7.segs.eq(0),
+                    self.seg7.segs.eq(~0),
                 ]
             return m
 
