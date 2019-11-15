@@ -81,7 +81,10 @@ class SimBuilder:
         return False
 
     def has_procs(self):
-        return self.procs or self.sync_procs
+        return bool(self.procs or self.sync_procs)
+
+    def has_clocks(self):
+        return bool(self.clocks)
 
     def build(self, sim):
         for clock in self.clocks:
@@ -167,7 +170,8 @@ class Main:
                 gtkw_file=open(gtkw_file, 'w'),
                 traces=self.design.ports) as sim:
             self._sim.build(sim)
-            sim.add_clock(args.sync_period)
+            if not self._sim.has_clocks():
+                sim.add_clock(args.sync_period)
             if args.sync_clocks:
                 sim.run_until(args.sync_period * args.sync_clocks, run_passive=True)
             else:

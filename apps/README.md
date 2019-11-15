@@ -22,6 +22,14 @@ iCEBreaker FPGA.
    PMOD works.  See Digilent's documentation for
    [pinout](https://reference.digilentinc.com/reference/pmod/pmodi2s/start).
 
+ * **seven\_seg\_counter** - count on a seven segment display.<br>
+   Demonstrates the seven\_segment.digit\_pattern and
+   seven\_segment.driver modules.
+   This demo requires a two digit seven segment display in **\*\*PMOD 1B\*\***.
+   A [1BitSquared PMOD 7 Segment
+   Display](https://1bitsquared.com/collections/fpga/products/pmod-7-segment-display)
+   works.
+
 # How to Use
 
 ```sh
