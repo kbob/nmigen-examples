@@ -88,14 +88,18 @@ class SimBuilder:
 
     def build(self, sim):
         for clock in self.clocks:
-            sim.add_clock(**clock)
+            sim.add_clock(clock.period,
+                          phase=clock.phase,
+                          domain=clock.domain,
+                          if_exists=clock.if_exists)
         for proc in self.procs:
             sim.add_process(proc)
         for sync_proc in self.sync_procs:
             sim.add_sync_process(*sync_proc)
 
-    def add_clock(self, period, **kwargs):
-        self.clocks.append(SimClock(period, **kwargs))
+    def add_clock(self, period, *,
+                  phase=None, domain='sync', if_exists=False):
+        self.clocks.append(SimClock(period, phase, domain, if_exists))
 
     # Use as decorator.
     def process(self, proc):
@@ -151,9 +155,11 @@ class Main:
         if generate_type is None:
             parser.error("specify file type explicitly with -t")
         if generate_type == "il":
-            output = rtlil.convert(fragment, name=self.name, ports=self.ports)
+            output = rtlil.convert(fragment,
+                                   name=self.name, ports=self.ports)
         if generate_type == "v":
-            output = verilog.convert(fragment, name=self.name, ports=self.ports)
+            output = verilog.convert(fragment,
+                                     name=self.name, ports=self.ports)
         if args.generate_file:
             args.generate_file.write(output)
         else:
@@ -173,7 +179,8 @@ class Main:
             if not self._sim.has_clocks():
                 sim.add_clock(args.sync_period)
             if args.sync_clocks:
-                sim.run_until(args.sync_period * args.sync_clocks, run_passive=True)
+                sim.run_until(args.sync_period * args.sync_clocks,
+                              run_passive=True)
             else:
                 assert self._sim.has_procs(), (
                     "must provide either a sim process or --clocks"
@@ -191,7 +198,8 @@ class Main:
         p_generate.add_argument("-t", "--type", dest="generate_type",
             metavar="LANGUAGE", choices=["il", "v"],
             default="v",
-            help="generate LANGUAGE (il for RTLIL, v for Verilog; default: %(default)s)")
+            help="generate LANGUAGE (il for RTLIL, v for Verilog; "
+                 "default: %(default)s)")
         p_generate.add_argument("generate_file",
             metavar="FILE", type=argparse.FileType("w"), nargs="?",
             help="write generated code to FILE")
@@ -206,7 +214,8 @@ class Main:
             help="write GTKWave configuration to GTKW-FILE")
         p_simulate.add_argument("-p", "--period", dest="sync_period",
             metavar="TIME", type=float, default=1e-6,
-            help="set 'sync' clock domain period to TIME (default: %(default)s)")
+            help="set 'sync' clock domain period to TIME "
+                 "(default: %(default)s)")
         p_simulate.add_argument("-c", "--clocks", dest="sync_clocks",
             metavar="COUNT", type=int,
             help="simulate for COUNT 'sync' clock periods")

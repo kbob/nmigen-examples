@@ -28,7 +28,7 @@ iCEBreaker FPGA.
    PMOD works.  See Digilent's documentation for
    [pinout](https://reference.digilentinc.com/reference/pmod/pmodi2s/start).
 
- * **seven\_seg\_counter** - count on a seven segment display.<br>
+ * **seven-seg-counter** - count on a seven segment display.<br>
    Library modules: `Timer`, `Counter`, `seven_segment.DigitPattern`,
    `seven_segment.Driver`
 
@@ -40,7 +40,7 @@ iCEBreaker FPGA.
    Display](https://1bitsquared.com/collections/fpga/products/pmod-7-segment-display)
    works.
 
- * **seven\_seg\_fade** - fade a seven segment display with pwm.<br>
+ * **seven-seg-fade** - fade a seven segment display with pwm.<br>
    Library modules: `Timer`, `Counter`, `seven_segment.DigitPattern`,
    `seven_segment.Driver`, `Mul`
 
@@ -54,6 +54,20 @@ iCEBreaker FPGA.
    DSP computes the square of the counter (a simple multiply).
    Note that `build.sh` has an environment variable to enable
    DSP synthesis.
+
+ * **receive-uart** - receive characters from UART.<br>
+ Library modules: `UART`
+
+ Receive characters from the FTDI UART.  Flashes the green and
+ red LEDs to indicate good/bad reception.  When a digit 1-5
+ is received, lights the corresponding LED on the breakaway PMOD.
+
+ Connect to FTDI UART 1 at 9600 baud, 8 data bits, no parity,
+ one stop bit.  To test the error code (red LED), use a faster
+ baud rate.
+
+ This demo requires the iCEBreaker break-off PMOD on connector
+ PMOD 2.  The iCEBreaker ships with that PMOD attached.
 
 
 # How to Use

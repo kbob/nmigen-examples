@@ -2,4 +2,4 @@
 
 NMIGEN_synth_opts=-dsp \
 PYTHONPATH=../.. \
-    nmigen seven_seg_fade.py
+    nmigen seven-seg-fade.py
