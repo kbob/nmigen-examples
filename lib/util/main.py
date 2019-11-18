@@ -88,10 +88,7 @@ class SimBuilder:
 
     def build(self, sim):
         for clock in self.clocks:
-            sim.add_clock(clock.period,
-                          phase=clock.phase,
-                          domain=clock.domain,
-                          if_exists=clock.if_exists)
+            sim.add_clock(**clock._asdict())
         for proc in self.procs:
             sim.add_process(proc)
         for sync_proc in self.sync_procs:
