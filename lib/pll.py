@@ -87,10 +87,10 @@ class PLL(Elaboratable):
 
             o_PLLOUTGLOBAL=ClockSignal(self.domain_name),
             o_LOCK=pll_lock)
+        rs = ResetSynchronizer(~pll_lock, domain=self.domain_name)
 
         m = Module()
-        m.submodules += pll
-        m.submodules += ResetSynchronizer(~pll_lock, self.domain_name)
+        m.submodules += [pll, rs]
         return m
 
 

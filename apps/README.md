@@ -56,18 +56,27 @@ iCEBreaker FPGA.
    DSP synthesis.
 
  * **receive-uart** - receive characters from UART.<br>
- Library modules: `UART`
+   Library modules: `UART`
 
- Receive characters from the FTDI UART.  Flashes the green and
- red LEDs to indicate good/bad reception.  When a digit 1-5
- is received, lights the corresponding LED on the breakaway PMOD.
+   Receive characters from the FTDI UART.  Flashes the green and
+   red LEDs to indicate good/bad reception.  When a digit 1-5
+   is received, lights the corresponding LED on the breakaway PMOD.
 
- Connect to FTDI UART 1 at 9600 baud, 8 data bits, no parity,
- one stop bit.  To test the error code (red LED), use a faster
- baud rate.
+   Connect to FTDI UART 1 at 9600 baud, 8 data bits, no parity,
+   one stop bit.  To test the error code (red LED), use a faster
+   baud rate.
 
- This demo requires the iCEBreaker break-off PMOD on connector
- PMOD 2.  The iCEBreaker ships with that PMOD attached.
+   This demo requires the iCEBreaker break-off PMOD on connector
+   PMOD 2.  The iCEBreaker ships with that PMOD attached.
+
+ * **othercase-uart** - echo characters from UART.<br>
+   Library modules: `UART`
+
+   Receive characters from the FTDI UART and echo them.  Uppercase
+   letters (US ASCII only) are echoed in lowercase, and lowercase
+   letters are echoed in uppercase.
+
+   The serial setup is the same as `receive_uart` above.
 
 
 # How to Use

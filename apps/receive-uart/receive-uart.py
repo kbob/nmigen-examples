@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.build import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from lib.uart import UART
+from lib.uart import UARTRx
 
 
 class OneShot(Elaboratable):
@@ -48,20 +48,20 @@ class Top(Elaboratable):
                       for i in range(5)]
 
         m = Module()
-        uart = UART(divisor=uart_divisor)
+        uart_rx = UARTRx(divisor=uart_divisor)
         recv_status = OneShot(duration=status_duration)
         err_status = OneShot(duration=status_duration)
-        m.submodules += [uart, recv_status, err_status]
+        m.submodules += [uart_rx, recv_status, err_status]
         m.d.comb += [
-            uart.rx_pin.eq(uart_pins.rx),
-            recv_status.trg.eq(uart.rx_rdy),
+            uart_rx.rx_pin.eq(uart_pins.rx),
+            recv_status.trg.eq(uart_rx.rx_rdy),
             good_led.eq(recv_status.out),
-            err_status.trg.eq(uart.rx_err),
+            err_status.trg.eq(uart_rx.rx_err),
             bad_led.eq(err_status.out),
         ]
-        with m.If(uart.rx_rdy):
+        with m.If(uart_rx.rx_rdy):
             m.d.sync += [
-                digit_leds[i].eq(uart.rx_data == ord('1') + i)
+                digit_leds[i].eq(uart_rx.rx_data == ord('1') + i)
                 for i in range(5)
             ]
         return m
