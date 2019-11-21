@@ -4,10 +4,12 @@ from nmigen import *
 from nmigen.build import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from lib.uart import UART
+from nmigen_lib.uart import UART
 
 
 class CaseBender(Elaboratable):
+
+    """Translate lowercase to uppercase, uppercase to lower."""
 
     def __init__(self):
         self.char_in = Signal(8)
@@ -29,6 +31,7 @@ class CaseBender(Elaboratable):
                 self.char_out.eq(self.char_in)
             ]
         return m
+
 
 class Top(Elaboratable):
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env nmigen
 
 from nmigen import *
-from lib.util.main import Main
+from nmigen_lib.util.main import Main
 
 
 class SevenSegDriver(Elaboratable):

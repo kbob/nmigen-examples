@@ -4,9 +4,9 @@ from nmigen import *
 from nmigen.build import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from lib.buzzer import Buzzer
-from lib.i2s import I2SOut
-from lib.pll import PLL
+from nmigen_lib.buzzer import Buzzer
+from nmigen_lib.i2s import I2SOut
+from nmigen_lib.pll import PLL
 
 
 class Top(Elaboratable):

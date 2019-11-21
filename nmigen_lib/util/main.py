@@ -35,7 +35,7 @@ module.  It has
 If you want the default simulator, instantiate like this.  In this
 case, you must specify the `--clocks=N` argument to simulate.
 
-    from lib.util.main import main
+    from nmigen_lib.util.main import main
 
     if __name__ == '__main__':
         design = MyModule(<args>)
@@ -43,7 +43,7 @@ case, you must specify the `--clocks=N` argument to simulate.
 
 If you want to add processes to the simulator, instantiate lik this.
 
-    from lib.util.main import Main
+    from nmigen_lib.util.main import Main
 
     if __name__ == '__main__':
         design - MyModule(<args>)

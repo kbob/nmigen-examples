@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.build import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from lib.uart import UARTRx
+from nmigen_lib.uart import UARTRx
 
 
 class OneShot(Elaboratable):

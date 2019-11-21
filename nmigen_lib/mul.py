@@ -1,7 +1,7 @@
 from nmigen import *
 from nmigen.asserts import *
 
-from lib.util.main import Main
+from nmigen_lib.util.main import Main
 
 class Mul(Elaboratable):
 

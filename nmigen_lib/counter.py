@@ -3,7 +3,7 @@
 import argparse
 
 from nmigen import *
-from lib.util.main import Main
+from nmigen_lib.util.main import Main
 
 class Counter(Elaboratable):
 

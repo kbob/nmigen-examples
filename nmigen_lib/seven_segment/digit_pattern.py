@@ -1,6 +1,6 @@
 from nmigen import *
 from nmigen.cli import *
-from lib.util.main import Main
+from nmigen_lib.util.main import Main
 
 class DigitPattern(Elaboratable):
 

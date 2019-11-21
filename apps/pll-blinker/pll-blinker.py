@@ -3,8 +3,8 @@
 from nmigen import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from lib.blinker import Blinker
-from lib.pll import PLL
+from nmigen_lib.blinker import Blinker
+from nmigen_lib.pll import PLL
 
 
 class Top(Elaboratable):

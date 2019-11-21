@@ -2,8 +2,8 @@
 
 from nmigen import *
 
-from lib.util import delay
-from lib.util.main import Main
+from nmigen_lib.util import delay
+from nmigen_lib.util.main import Main
 
 
 class UART(Elaboratable):

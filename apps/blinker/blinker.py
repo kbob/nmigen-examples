@@ -3,7 +3,7 @@
 from nmigen import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from lib.blinker import Blinker
+from nmigen_lib.blinker import Blinker
 
 
 class Top(Elaboratable):
