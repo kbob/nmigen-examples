@@ -4,10 +4,7 @@ from nmigen import *
 from nmigen.build import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from nmigen_lib.counter import Counter
-from nmigen_lib.timer import Timer
-from nmigen_lib.seven_segment.digit_pattern import DigitPattern
-from nmigen_lib.seven_segment.driver import SevenSegDriver
+from nmigen_lib import Counter, Timer, DigitPattern, SevenSegDriver
 
 
 class Top(Elaboratable):

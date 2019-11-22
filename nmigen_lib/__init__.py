@@ -6,7 +6,8 @@ from .mul import Mul
 from .pll import PLL
 from .timer import Timer
 from .uart import UART, UARTTx, UARTRx
-
+from .seven_segment.digit_pattern import DigitPattern
+from.seven_segment.driver import SevenSegDriver
 
 
 __all__ = [
@@ -20,4 +21,6 @@ __all__ = [
     'UART',
     'UARTTx',
     'UARTRx',
+    'DigitPattern',
+    'SevenSegDriver',
     ]
