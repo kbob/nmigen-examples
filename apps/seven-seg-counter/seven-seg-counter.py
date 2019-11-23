@@ -15,7 +15,6 @@ class Top(Elaboratable):
         clk_freq = platform.default_clk_frequency
         min_refresh_freq = 100
         count_freq = 4
-        (type(clk_freq))
 
         m = Module()
         ticker = Timer(period=int(clk_freq // count_freq))
