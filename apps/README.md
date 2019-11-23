@@ -78,6 +78,16 @@ iCEBreaker FPGA.
 
    The serial setup is the same as `receive_uart` above.
 
+ * **hex-uart** - display characters' hex values.<br>
+   Library modules: `seven_segment.digit_pattern`, `seven_segment.driver`,
+   `UART`
+
+   Receive characters from the FTDI UART and display their hexadecimal
+   values on a seven segment display.
+
+   This demo requires a seven-segment display attached to PMOD 1B.
+   See `seven-seg-counter` above.  The serial setup is the same as
+   `receive_uart` above.
 
 # How to Use
 
