@@ -6,7 +6,7 @@ from nmigen_lib.util.main import Main
 
 class SevenSegDriver(Elaboratable):
 
-    def __init__(self, clk_freq, min_refresh_freq, pwm_width=8):
+    def __init__(self, clk_freq, min_refresh_freq=100, pwm_width=8):
         self.clk_freq = clk_freq
         self.min_refresh_freq = min_refresh_freq
         self.pwm_width = pwm_width

@@ -3,6 +3,7 @@ from collections import namedtuple
 from contextlib import contextmanager
 import inspect
 import os.path
+import warnings
 
 from nmigen import *
 from nmigen.hdl.ir import Fragment
@@ -126,6 +127,9 @@ class Main:
             self._generate()
         elif self.args.action == 'simulate':
             self._simulate()
+        else:
+            Elaboratable._Elaboratable__silence = True
+            exit('main: must specify either `generate` or `simulate` action')
 
     @property
     @contextmanager
