@@ -3,6 +3,8 @@
 from nmigen import *
 from nmigen.build import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
+from nmigen_boards.resources import UARTResource
+
 
 from nmigen_lib import UARTRx, DigitPattern, SevenSegDriver
 
@@ -38,10 +40,10 @@ class Top(Elaboratable):
 
     def elaborate(self, platform):
         clk_freq = platform.default_clk_frequency
-        uart_baud = 9600
+        uart_baud = 31250
         uart_divisor = int(clk_freq // uart_baud)
         status_duration = int(0.1 * clk_freq)
-        uart_pins = platform.request('uart')
+        uart_pins = platform.request('uart', 1)
         bad_led = platform.request('led_r', 0)
         good_led = platform.request('led_g', 0)
         seg7_pins = platform.request('seg7')
@@ -82,6 +84,8 @@ if __name__ == '__main__':
             Subsignal('segs', Pins('1 2 3 4 7 8 9', conn=conn, dir='o')),
             Subsignal('digit', Pins('10', conn=conn, dir='o')),
         ),
+        UARTResource(1, rx='39', tx='40',
+                     attrs=Attrs(IO_STANDARD='SB_LVCMOS')),
     ])
     top = Top()
     platform.build(top, do_program=True)

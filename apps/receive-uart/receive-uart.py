@@ -2,6 +2,7 @@
 
 from nmigen import *
 from nmigen.build import *
+from nmigen_boards.resources import UARTResource
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
 from nmigen_lib.uart import UARTRx
@@ -38,10 +39,10 @@ class Top(Elaboratable):
 
     def elaborate(self, platform):
         clk_freq = platform.default_clk_frequency
-        uart_baud = 9600
+        uart_baud = 31250
         uart_divisor = int(clk_freq // uart_baud)
         status_duration = int(0.1 * clk_freq)
-        uart_pins = platform.request('uart')
+        uart_pins = platform.request('uart', 1)
         bad_led = platform.request('led', 0)
         good_led = platform.request('led', 1)
         digit_leds = [platform.request('led', i + 2)
@@ -70,5 +71,9 @@ class Top(Elaboratable):
 if __name__ == '__main__':
     platform = ICEBreakerPlatform()
     platform.add_resources(platform.break_off_pmod)
+    platform.add_resources([
+        UARTResource(1, rx='39', tx='40',
+                     attrs=Attrs(IO_STANDARD='SB_LVCMOS')),
+    ])
     top = Top()
     platform.build(top, do_program=True)
