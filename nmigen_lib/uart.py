@@ -182,19 +182,18 @@ class UARTRx(Elaboratable):
                         ]
                         m.next = 'DATA'
                 with m.State('DATA'):
+                    new_bit = Signal(self.data_bits)
+                    m.d.comb += new_bit[7].eq(self.rx_pin)
+                    m.d.sync += [
+                        # rx_data.eq(rx_data << 1 | self.rx_pin),
+                        rx_data.eq(new_bit | rx_data >> 1),
+                        rx_counter.eq(self.divisor - 2),
+                    ]
                     with m.If(rx_bits[-1]):
-                        m.d.sync += [
-                            rx_counter.eq(self.divisor - 2),
-                        ]
                         m.next = 'STOP'
                     with m.Else():
-                        new_bit = Signal(self.data_bits)
-                        m.d.comb += new_bit[6].eq(self.rx_pin)
                         m.d.sync += [
-                            # rx_data.eq(rx_data << 1 | self.rx_pin),
-                            rx_data.eq(new_bit | rx_data >> 1),
                             rx_bits.eq(rx_bits - 1),
-                            rx_counter.eq(self.divisor - 2),
                         ]
                         m.next = 'DATA'
                 with m.State('STOP'):
@@ -237,6 +236,7 @@ if __name__ == '__main__':
         @sim.sync_process
         def recv_char():
             char = 'Q'
+            char = chr(0x95) # Test high bit
             yield design.rx_pin.eq(1)
             yield from delay(3)
             # Start bit
