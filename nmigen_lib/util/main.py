@@ -172,6 +172,11 @@ class Main:
         prefix = os.path.splitext(design_file)[0]
         vcd_file = args.vcd_file or prefix + '.vcd'
         gtkw_file = args.gtkw_file = prefix + '.gtkw'
+        traces = getattr(self.design, 'ports')
+        if traces is None:
+            traces = [sig
+                      for sig in self.design.__dict__.values
+                      if isinstance(sig, Signal)]
         with pysim.Simulator(self.design,
                 vcd_file=open(vcd_file, 'w'),
                 gtkw_file=open(gtkw_file, 'w'),
