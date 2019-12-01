@@ -114,7 +114,7 @@ class SimBuilder:
 
 class Main:
 
-    def __init__(self, design, platform=None, name='top', ports=()):
+    def __init__(self, design, platform=None, name='top', ports=None):
         self.design = design
         self.platform = platform
         self.name = name
@@ -144,6 +144,17 @@ class Main:
             if ok:
                 self.run()
 
+    def _get_ports(self):
+        ports = self.ports
+        if ports is None:
+            ports = getattr(self.design, 'ports', None)
+        if ports is None:
+            ports = [sig
+                     for (name, sig) in self.design.__dict__.items()
+                     if isinstance(sig, Signal) and not name.startswith('_')]
+        return ports
+
+
     def _generate(self):
         args = self.args
         fragment = Fragment.get(self.design, self.platform)
@@ -157,10 +168,10 @@ class Main:
             parser.error("specify file type explicitly with -t")
         if generate_type == "il":
             output = rtlil.convert(fragment,
-                                   name=self.name, ports=self.ports)
+                                   name=self.name, ports=self._get_ports())
         if generate_type == "v":
             output = verilog.convert(fragment,
-                                     name=self.name, ports=self.ports)
+                                     name=self.name, ports=self._get_ports())
         if args.generate_file:
             args.generate_file.write(output)
         else:
@@ -172,15 +183,11 @@ class Main:
         prefix = os.path.splitext(design_file)[0]
         vcd_file = args.vcd_file or prefix + '.vcd'
         gtkw_file = args.gtkw_file = prefix + '.gtkw'
-        traces = getattr(self.design, 'ports')
-        if traces is None:
-            traces = [sig
-                      for sig in self.design.__dict__.values
-                      if isinstance(sig, Signal)]
+        traces = self._get_ports()
         with pysim.Simulator(self.design,
                 vcd_file=open(vcd_file, 'w'),
                 gtkw_file=open(gtkw_file, 'w'),
-                traces=self.design.ports) as sim:
+                traces=traces) as sim:
             self._sim.build(sim)
             if not self._sim.has_clocks():
                 sim.add_clock(args.sync_period)
