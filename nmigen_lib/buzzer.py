@@ -7,31 +7,26 @@ from nmigen_lib.util.main import Main
 
 class Buzzer(Elaboratable):
 
-    def __init__(self, frequency, sample_frequency):
+    def __init__(self, frequency, sample_frequency, depth=16):
         self.frequency = frequency
         self.sample_frequency = sample_frequency
-        self.sample = Signal(signed(16))
+        self.depth = depth
+        self.sample = Signal(signed(depth))
         self.enable = Signal()
         self.stb = Signal()
         self.ack = Signal()
         self.ports = [self.enable, self.stb, self.ack, self.sample]
 
     def elaborate(self, platform):
-        inc = round(2**16 * self.frequency / self.sample_frequency)
+        inc = round(2**self.depth * self.frequency / self.sample_frequency)
         # print(f'Buzzer: frequency = {self.frequency}')
         # print(f'Buzzer: sample_frequency = {self.sample_frequency}')
         # print(f'Buzzer: inc = {inc}')
+        # print()
         m = Module()
         with m.If(self.ack):
-            with m.If(self.enable):
-                m.d.sync += [
-                    self.sample.eq(self.sample + inc),
-                ]
-            with m.Else():
-                m.d.sync += [
-                    self.sample.eq(0),
-                ]
             m.d.sync += [
+                self.sample.eq(Mux(self.enable, self.sample + inc, 0)),
                 self.stb.eq(False),
             ]
         with m.Else():
