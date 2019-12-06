@@ -56,7 +56,6 @@ class UART(Elaboratable):
         return m
 
 
-### Currently, only receive is implemented.
 class UARTTx(Elaboratable):
 
     def __init__(self, divisor, data_bits=8):
@@ -134,6 +133,7 @@ class UARTRx(Elaboratable):
         self.rx_pin = Signal(reset=1)
         self.rx_rdy = Signal()
         self.rx_err = Signal()
+        self.dbg    = Signal(4)                     # XXX
         # self.rx_ovf = Signal()  # XXX not used yet
         self.rx_data = Signal(data_bits)
         self.ports = (self.rx_pin,
@@ -141,16 +141,20 @@ class UARTRx(Elaboratable):
                       self.rx_err,
                       # self.rx_ovf,
                       self.rx_data,
+                      self.dbg,                     # XXX
                      )
 
     def elaborate(self, platform):
         # N.B. both counters (rx_counter, rx_bits) count from n-2 to -1.
         rx_max = self.divisor - 2
-        rx_counter = Signal(range(2 * (rx_max + 1)), reset=~0)
+        rx_counter = Signal(range(-1, rx_max + 1), reset=~0)
         rx_data = Signal(self.data_bits)
-        rx_bits = Signal(range(2 * (self.data_bits - 1)))
+        rx_bits = Signal(range(-1, self.data_bits - 1))
+        rx_resync_max = 10 * self.divisor - 2
+        rx_resync_counter = Signal(range(-1, rx_resync_max + 1))
 
         m = Module()
+        m.d.comb += self.dbg[0].eq(rx_counter[-1])  # XXX
         with m.If(rx_counter[-1]):
             with m.FSM():
                 with m.State('IDLE'):
@@ -166,15 +170,17 @@ class UARTRx(Elaboratable):
                         m.d.sync += [
                             self.rx_rdy.eq(False),
                             self.rx_err.eq(False),
+                            rx_counter.eq(-1),
                         ]
                         m.next = 'IDLE'
                 with m.State('START'):
                     with m.If(self.rx_pin):
                         m.d.sync += [
                             self.rx_err.eq(True),
-                            rx_counter.eq(self.divisor - 2),
+                            rx_counter.eq(-1),
+                            rx_resync_counter.eq(rx_resync_max),
                         ]
-                        m.next = 'IDLE'
+                        m.next = 'RESYNC'
                     with m.Else():
                         m.d.sync += [
                             rx_bits.eq(self.data_bits - 2),
@@ -182,11 +188,8 @@ class UARTRx(Elaboratable):
                         ]
                         m.next = 'DATA'
                 with m.State('DATA'):
-                    new_bit = Signal(self.data_bits)
-                    m.d.comb += new_bit[7].eq(self.rx_pin)
                     m.d.sync += [
-                        # rx_data.eq(rx_data << 1 | self.rx_pin),
-                        rx_data.eq(new_bit | rx_data >> 1),
+                        rx_data.eq(Cat(rx_data[1:], self.rx_pin)),
                         rx_counter.eq(self.divisor - 2),
                     ]
                     with m.If(rx_bits[-1]):
@@ -200,15 +203,35 @@ class UARTRx(Elaboratable):
                     with m.If(~self.rx_pin):
                         m.d.sync += [
                             self.rx_err.eq(True),
-                            rx_counter.eq(self.divisor - 2),
+                            rx_resync_counter.eq(rx_resync_max),
+                            rx_counter.eq(-1),
                         ]
-                        m.next = 'IDLE'
+                        m.next = 'RESYNC'
                     with m.Else():
                         m.d.sync += [
                             self.rx_data.eq(rx_data),
                             self.rx_rdy.eq(True),
                         ]
                         m.next = 'IDLE'
+
+                with m.State('RESYNC'):
+                    m.d.sync += [
+                        self.rx_err.eq(False),
+                        rx_counter.eq(-1),
+                    ]
+                    with m.If(self.rx_pin):
+                        with m.If(rx_resync_counter[-1]):
+                            m.next = 'IDLE'
+                        with m.Else():
+                            m.d.sync += [
+                                rx_resync_counter.eq(rx_resync_counter - 1),
+                            ]
+                            m.next = 'RESYNC'
+                    with m.Else():
+                        m.d.sync += [
+                            rx_resync_counter.eq(rx_resync_max),
+                        ]
+                        m.next = 'RESYNC'
         with m.Else():
             m.d.sync += [
                 rx_counter.eq(rx_counter - 1),
@@ -219,7 +242,7 @@ class UARTRx(Elaboratable):
 
 
 if __name__ == '__main__':
-    divisor = 3
+    divisor = 20
     design = UART(divisor=divisor)
     with Main(design).sim as sim:
 
@@ -239,14 +262,15 @@ if __name__ == '__main__':
             char = chr(0x95) # Test high bit
             yield design.rx_pin.eq(1)
             yield from delay(3)
-            # Start bit
-            yield design.rx_pin.eq(0)
-            yield from delay(divisor)
-            # Data bits
-            for i in range(8):
-                yield design.rx_pin.eq(ord(char) >> i & 1)
+            for i in range(2):
+                # Start bit
+                yield design.rx_pin.eq(0)
                 yield from delay(divisor)
-            # Stop bit
-            yield design.rx_pin.eq(1)
-            yield from delay(divisor)
-            yield from delay(2)
+                # Data bits
+                for i in range(8):
+                    yield design.rx_pin.eq(ord(char) >> i & 1)
+                    yield from delay(divisor)
+                # Stop bit
+                yield design.rx_pin.eq(1)
+                yield from delay(divisor)
+                yield from delay(2)
