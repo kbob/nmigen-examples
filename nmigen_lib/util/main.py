@@ -93,7 +93,7 @@ class SimBuilder:
         for proc in self.procs:
             sim.add_process(proc)
         for sync_proc in self.sync_procs:
-            sim.add_sync_process(*sync_proc)
+            sim.add_sync_process(sync_proc.process, domain=sync_proc.domain)
 
     def add_clock(self, period, *,
                   phase=None, domain='sync', if_exists=False):
