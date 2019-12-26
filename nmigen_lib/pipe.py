@@ -113,6 +113,10 @@ when the pipe is destroyed.
 Create a PipeSpec class analogous to SpokeFPGA's PipeSpec; convert
 between PipeSpec and int, and create Pipe from PipeSpec (or int).
 Mostly for SpokeFPGA compatibility.
+
+SpokeFPGA pipes have a bunch of optional features that we don't --
+bidirectional data; command, request, and response fields; and
+maybe more.
 """
 
 
