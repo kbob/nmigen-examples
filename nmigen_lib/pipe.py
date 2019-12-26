@@ -60,15 +60,15 @@ The constructor takes an optional `flags` argument.  When flags'
 
 Here are examples.
 
->>> a_layout = Layout(        # define a layout with two fields
-...     ('command', 4),
-...     ('operand', 8),
-...     )
->>> my_pipe = Pipe(a_layout)    # the payload is two fields.
->>> my_pipe2 = Pipe(signed(16)) # payload is a signed int.
->>> my_pipe3 = Pipe(16)         # payload is an unsigned int.
->>> my_pipe4 = Pipe(7, flags=START_STOP | DATA_SIZE)
->>>                             # enable both options
+    >>> a_layout = Layout(        # define a layout with two fields
+    ...     ('command', 4),
+    ...     ('operand', 8),
+    ...     )
+    >>> my_pipe = Pipe(a_layout)    # the payload is two fields.
+    >>> my_pipe2 = Pipe(signed(16)) # payload is a signed int.
+    >>> my_pipe3 = Pipe(16)         # payload is an unsigned int.
+    >>> my_pipe4 = Pipe(7, flags=START_STOP | DATA_SIZE)
+    >>>                             # enable both options
 
 # Endpoints
 
@@ -87,23 +87,23 @@ signal is called `o_ready`.
 The source endpoint's `sent` method tests whether a transfer has
 occurred.
 
->>> my_src = my_pipe.source_endpoint
->>> with m.If(my_src.sent()):
-...     # transfer happened.  `o_data` may be loaded with next data.
+    >>> my_src = my_pipe.source_endpoint
+    >>> with m.If(my_src.sent()):
+    ...     # transfer happened.  `o_data` may be loaded with next data.
 
 Similarly, the sink endpoint has a `received` method.
 
->>> my_sink = my_pipe.sink_endpoint
->>> with m.If(my_sink.received()):
-...     # transfer happened.  Use or copy `i_data` now.
+    >>> my_sink = my_pipe.sink_endpoint
+    >>> with m.If(my_sink.received()):
+    ...     # transfer happened.  Use or copy `i_data` now.
 
 # Making the Connection
 
 A pipe's endpoints must be connected before it works.  This is done in
 the combinatoric domain.  Somewhere, probably close to the pipe's
-constructor, connect the pipe with this code..
+constructor, connect the pipe with this code.
 
->>> m.d.comb += my_pipe.connection()
+    >>> m.d.comb += my_pipe.connection()
 
 If a pipe is not connected, an `UnconnectedPipe` warning is raised
 when the pipe is destroyed.
@@ -111,7 +111,8 @@ when the pipe is destroyed.
 # TBD
 
 Create a PipeSpec class analogous to SpokeFPGA's PipeSpec; convert
-between PipeSpec and Pipe.
+between PipeSpec and int, and create Pipe from PipeSpec (or int).
+Mostly for SpokeFPGA compatibility.
 """
 
 
