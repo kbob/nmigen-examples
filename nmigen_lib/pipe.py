@@ -3,104 +3,116 @@
 """
 Pipe -- unidirectional data transfer with handshaking.
 
-Pipes are a set of classes and conventions that allow modules to be
-pass data between them.  Using pipes, two modules can be connected and
-synchronized without knowing much about each other.
+Pipes provide a framework and set of conventions that allows modules
+to pass data between them.  Using pipes, two modules can be connected
+and synchronized without knowing much about each other.
 
-The simplest pipe is a BasicPipe.  It only transfers a handshake.
-Two modules can use a BasicPipe to run in lockstep.
+Pipes are modeled on David Williams' [SpokeFPGA
+pipes](https://davidthings.github.io/spokefpga/pipelines).  In
+principle, they should be binary compatible with a shim to pack and
+unpack the signals, though the API is different.
 
-Next is the DataPipe.  DataPipe transfers a block of data all at once.
-DataPipe is parameterized by the data type.  It can either be a
-single word (or bit) or an nMigen Record.
+# The Data
 
-A PacketPipe extends DataPipe by adding packet start and stop signals.
-Transfers between a start and a stop are understood to be in the
-same packet.  Transfers not bracketed by start and stop are
-still permitted
+A pipe transfers one record of data at a time in parallel.  The
+data format is described by an nMigen `Record` and may contains
+several pieces.
 
-A SizedPipe extends DataPipe by add
+# The Handshake
 
-The Handshake
+The handshake protocol uses two signals,`ready` and `valid`.  When the
+source is making data available, it stores it in the pipe's `data`
+signal and sets `valid`.  When the sink can accept new data, it sets
+`ready`.  Whenever the endpoints sees that both `valid` and `ready`
+were active at the same time, they know that a transfer is complete.
+The sink must either use the data immediately or make a copy of it, as
+the source may overwrite it on the next clock.
 
-The two handshake signals are `ready` and `valid`.  When the source is
-making data available, it sets `valid`.  When the sink can accept new
-data, it sets `ready`.  Whenever the endpoints sees that both `valid`
-and `ready` were active at the same time, they know that a transfer
-is complete.  The sink must make a copy of the data, as the source
-may overwrite it on the next clock.
+# Packets
+
+A pipe may optionally group data into packets (aka messages or
+frames).  When a pipe is created with the START_STOP flag, two signals
+are created called `start` and `stop`.  The pipe implementation itself
+does nothing with these signals; it is up to the source and sink to
+interpret them as the first and last records in a packet.  See the
+[the SpokeFPGA
+documentation](https://davidthings.github.io/spokefpga/pipelines#start--stop)
+for more info.
+
+# Data Size
+
+A pipe may optionally pass a `size` signal that describes how many
+bits of the `data` field are valid.  Again, see [the SpokeFPGA
+documentation](https://davidthings.github.io/spokefpga/pipelines#data-size).
+
+# API
+
+## Creating a pipe
+
+The pipe constructor takes an nMigen Layout, Shape, or integer that
+describes the data signal's layout.  A Shape or integer is coerced
+to a Layout using nMigen's rules.
 
 
+The constructor takes an optional `flags` argument.  When flags'
+`DATA_SIZE` bit is set, the pipe has a `data_size` signal.  When the
+`START_STOP` bit is set, the pipe has `start` and `stop` signals.
 
+Here are examples.
 
+>>> a_layout = Layout(        # define a layout with two fields
+...     ('command', 4),
+...     ('operand', 8),
+...     )
+>>> my_pipe = Pipe(a_layout)    # the payload is two fields.
+>>> my_pipe2 = Pipe(signed(16)) # payload is a signed int.
+>>> my_pipe3 = Pipe(16)         # payload is an unsigned int.
+>>> my_pipe4 = Pipe(7, flags=START_STOP | DATA_SIZE)
+>>>                             # enable both options
 
+# Endpoints
 
-Pipes are based on David Williams' SpokeFPGA pipes.  In principle,
-they should be binary compatible with a shim to pack and unpack the
-signals.
+A pipe has two endpoints, accessible through its `source_end` and
+`sink_end` properties.  Each endpoint is an nMigen Record subtype,
+and the signals can be accessed directly.  For clarity, the
+signals are prefixed with `i_` for inputs and `o_` for outputs.
+Signals that transmit data downstream use the `o_` prefix on
+the source end and `i_` on the sink end.  Upstream signals
+use the opposite convention.
 
+Currently, the only upstream signal is `ready`.  The source
+endpoint's signal is called `i_ready`, and the sink endpoint's
+signal is called `o_ready`.
+
+The source endpoint's `sent` method tests whether a transfer has
+occurred.
+
+>>> my_src = my_pipe.source_endpoint
+>>> with m.If(my_src.sent()):
+...     # transfer happened.  `o_data` may be loaded with next data.
+
+Similarly, the sink endpoint has a `received` method.
+
+>>> my_sink = my_pipe.sink_endpoint
+>>> with m.If(my_sink.received()):
+...     # transfer happened.  Use or copy `i_data` now.
+
+# Making the Connection
+
+A pipe's endpoints must be connected before it works.  This is done in
+the combinatoric domain.  Somewhere, probably close to the pipe's
+constructor, connect the pipe with this code..
+
+>>> m.d.comb += my_pipe.connection()
+
+If a pipe is not connected, an `UnconnectedPipe` warning is raised
+when the pipe is destroyed.
+
+# TBD
+
+Create a PipeSpec class analogous to SpokeFPGA's PipeSpec; convert
+between PipeSpec and Pipe.
 """
-
-# Pipe based on @davidthings' SpokeFPGA pipes
-
-# Basic Pipe: VALID, READY signals.
-#    VALID is controlled by the source.
-#    READY is controlled by the sink (flows upstream)
-#
-# Either may be asserted at any time; a transfer happens
-# during any clock where both are asserted.
-#
-# Properties overridden by subclasses:
-#   .downstream_signals
-#   .upstream_signals
-#   .handshake_signals
-#   .payload_signals
-#
-# Methods:
-#   .connect(self, other)    # overrides Record
-#   @staticmethod layout(...)
-
-# Data Pipe: Adds DATA[] signal.
-#    DATA[] is arbitrary data, may be a Record.
-
-# PacketPipe: Adds beginning and end of packet flags.
-#    START - this is the first word of a packet.
-#    STOP  - this is the last word of a packet.
-#
-# It should be illegal to have two STARTs without an intervening STOP
-# or a STOP that doesn't follow a START (possibly on the same clock).
-#
-# A data pipe can simulate a PacketPipe by always asserting START and STOP
-# -- each word is its own packet.
-
-# SizedPipe: Adds valid bit count to each word.
-
-# What does the API look like?
-
-# Create a pipe like this.
-# >>> my_pipe = DataPipe(signed(16))
-# or
-# >>> my_pipe = DataPipe(Layout(('numerator', 8), ('denominator', 8)))
-#
-# Access endpoints.
-# >>> my_output = my_pipe.source_end
-# >>> my_input = my_pipe.sink_end
-#
-# Connect endpoints.
-# >>> m.d.comb += my_pipe.connection()
-#
-# Source: send data
-# >>> with m.If(my_output.sent()):
-# ...     # send completes on this clock.
-# ...     # otherwise, repease.
-#
-# Sink: receive data
-# >>> with m.If(my_input.received()):
-# ...     #
-#
-# Sink: receive data.
-# >>> with m.If(my_input.receive()):
-# ...     m.d.sync += my_data.eq(my_input.i_data)
 
 
 from enum import Enum, auto
@@ -307,23 +319,6 @@ class Pipe:
             for sig in self._signals()
             if predicate(sig.name, sig.shape, sig.direction)
         )
-
-
-# class DataPipe(BasicPipe):
-#
-#     def _signals(self):
-#         sigs = super()._signals()
-#         sigs += (
-#             SignalDesc('data', self._data_layout, SignalDirection.DOWNSTREAM),
-#         )
-#         return sigs
-#
-#     def __init__(self, layout, name=None, src_loc_at=0):
-#         self._data_layout = layout
-#         super().__init__(
-#             name=name,
-#             src_loc_at=src_loc_at + 1
-#         )
 
 
 if __name__ == '__main__':
