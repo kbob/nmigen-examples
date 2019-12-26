@@ -26,9 +26,9 @@ class Top(Elaboratable):
 
     def elaborate(self, platform):
         cnt = Signal(5)
-        btn0 = platform.request('user_btn', 0)
-        btn1 = platform.request('user_btn', 1)
-        led = platform.request('user_led')
+        btn0 = platform.request('button', 0)
+        btn1 = platform.request('button', 1)
+        led = platform.request('led')
         mul = Mul()
 
         m = Module()
