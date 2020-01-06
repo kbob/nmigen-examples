@@ -15,7 +15,7 @@ unpack the signals, though the API is different.
 # The Data
 
 A pipe transfers one record of data at a time in parallel.  The
-data format is described by an nMigen `Record` and may contains
+data format is described by an nMigen `Record` and may contain
 several pieces.
 
 # The Handshake
@@ -23,7 +23,7 @@ several pieces.
 The handshake protocol uses two signals,`ready` and `valid`.  When the
 source is making data available, it stores it in the pipe's `data`
 signal and sets `valid`.  When the sink can accept new data, it sets
-`ready`.  Whenever the endpoints sees that both `valid` and `ready`
+`ready`.  Whenever the endpoints see that both `valid` and `ready`
 were active at the same time, they know that a transfer is complete.
 The sink must either use the data immediately or make a copy of it, as
 the source may overwrite it on the next clock.
@@ -52,7 +52,6 @@ documentation](https://davidthings.github.io/spokefpga/pipelines#data-size).
 The pipe constructor takes an nMigen Layout, Shape, or integer that
 describes the data signal's layout.  A Shape or integer is coerced
 to a Layout using nMigen's rules.
-
 
 The constructor takes an optional `flags` argument.  When flags'
 `DATA_SIZE` bit is set, the pipe has a `data_size` signal.  When the
