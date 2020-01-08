@@ -36,6 +36,9 @@ class _PipeEnd(Record):
                 **self._creation_context,
             )
 
+    def leave_unconnected(self):
+        self._connected = True  # suppress warning
+
     def connect_ends(self, source, sink):
         assert isinstance(source, PipeInlet), (
             f'connection source must be PipeInlet, not {type(source)}'
@@ -44,17 +47,17 @@ class _PipeEnd(Record):
             f'connection sink must be PipeOutlet, not {type(sink)}'
         )
         assert not source._connected, (
-            f'connecting already-connected pipe end {source}'
+            f'connecting already-connected pipe inlet {source}'
         )
         assert not sink._connected, (
-            f'connecting already-connected pipe end {sink}'
+            f'connecting already-connected pipe outlet {sink}'
+        )
+        assert self._ends_are_compatible(source, sink), (
+            f'connecting incompatible pipes {source._spec} and {sink._spec}'
         )
         source._connected = True
         sink._connected = True
         spec = source._spec
-        assert self._ends_are_compatible(source, sink), (
-            f'connecting incompatible pipes {spec} and {sink._spec}'
-        )
         return [
             dst.eq(src)
             for (src, dst) in [
@@ -82,7 +85,7 @@ class PipeInlet(_PipeEnd):
         """True when data is sent on the current clock."""
         return self.i_ready & self.o_valid
 
-    def connect_to(self, outlet):
+    def flow_to(self, outlet):
         return self.connect_ends(self, outlet)
 
     prefices = {
@@ -97,7 +100,7 @@ class PipeOutlet(_PipeEnd):
         """true when data is received on current clock."""
         return self.o_ready & self.i_valid
 
-    def connect_to(self, inlet):
+    def flow_from(self, inlet):
         return self.connect_ends(inlet, self)
 
     prefices = {
@@ -108,17 +111,3 @@ class PipeOutlet(_PipeEnd):
 
 class UnconnectedPipeEnd(Warning):
     """A pipe end was instantiated but never connected."""
-
-
-if __name__ == '__main__':
-
-    class MockSpec:
-        downstream_signals = [SignalDesc('a', unsigned(1))]
-        upstream_signals = []
-
-    spec = MockSpec()
-    layout = (('a', 1), )
-    i = PipeInlet(spec, (('o_a', 1), ))
-    o = PipeOutlet(spec, (('i_a', 1), ))
-    c = i.connect_to(o)
-    assert repr(c) == '[(eq (sig i_a) (sig o_a))]'

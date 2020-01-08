@@ -22,7 +22,7 @@ if __name__ == '__main__':
         assert isinstance(pi0, Record)
         assert isinstance(pi0, Value)
         assert pi0.o_data.shape() == unsigned(8)
-        c0 = pi0.connect_to(ps0.outlet())
+        c0 = pi0.flow_to(ps0.outlet())
         assert len(c0) == 3
         assert repr(c0[0]) == '(eq (sig i_data) (sig pi0__o_data))'
         assert repr(c0[1]) == '(eq (sig i_valid) (sig pi0__o_valid))'
@@ -41,7 +41,7 @@ if __name__ == '__main__':
         assert isinstance(pi1, Record)
         assert isinstance(pi1, Value)
         assert pi1.o_data.shape() == signed(5)
-        c1 = ps1.outlet().connect_to(pi1)
+        c1 = ps1.outlet().flow_from(pi1)
         assert len(c1) == 4
 
         ps2 = PipeSpec((('a', signed(4)), ('b', unsigned(2))), flags=START_STOP)
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         po2 = ps2.outlet()
         assert isinstance(po2, PipeOutlet)
         assert po2.i_data.shape() == unsigned(4 + 2)
-        c2 = pi2.connect_to(po2)
+        c2 = pi2.flow_to(po2)
         assert len(c2) == 5
 
         ps3 = PipeSpec.from_int(START_STOP | DATA_SIZE | 10)
@@ -83,8 +83,8 @@ if __name__ == '__main__':
         assert repr(po3) == repr(outlet_3)
         assert repr(pi3.fields) == repr(inlet_3.fields)
         assert repr(po3.fields) == repr(outlet_3.fields)
-        c3 = pi3.connect_to(po3)
-        c3a = outlet_3.connect_to(inlet_3)
+        c3 = pi3.flow_to(po3)
+        c3a = outlet_3.flow_from(inlet_3)
         assert len(c3) == 6
         assert len(c3a) == 6
 
@@ -150,7 +150,7 @@ if __name__ == '__main__':
             snk = TestSink()
             m.submodules.source = src
             m.submodules.sink = self.sink = snk
-            m.d.comb += src.data_out.connect_to(snk.data_in)
+            m.d.comb += src.data_out.flow_to(snk.data_in)
             m.d.comb += src.trigger.eq(self.trigger)
             return m
 
