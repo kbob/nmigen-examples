@@ -154,7 +154,6 @@ class Main:
                      if isinstance(sig, Signal) and not name.startswith('_')]
         return ports
 
-
     def _generate(self):
         args = self.args
         fragment = Fragment.get(self.design, self.platform)
@@ -178,8 +177,13 @@ class Main:
             print(output)
 
     def _simulate(self):
+        if isinstance(self.design, Module):
+            design_file = self._caller_filename()
+        elif isinstance(self.design, Elaboratable):
+            design_file = inspect.getsourcefile(self.design.__class__)
+        else:
+            assert TypeError, 'can only simulate Elaboratable or Module'
         args = self.args
-        design_file = inspect.getsourcefile(self.design.__class__)
         prefix = os.path.splitext(design_file)[0]
         vcd_file = args.vcd_file or prefix + '.vcd'
         gtkw_file = args.gtkw_file = prefix + '.gtkw'
@@ -199,6 +203,16 @@ class Main:
                     "must provide either a sim process or --clocks"
                 )
                 sim.run()
+
+    def _caller_filename(self):
+        try:
+            f = None
+            cur_file = inspect.getsourcefile(inspect.currentframe())
+            for f in inspect.stack():
+                if f.filename != cur_file and f.function != '__exit__':
+                    return f.filename
+        finally:
+            del f
 
     def _arg_parser(self, parser=None):
         if parser is None:
