@@ -1,15 +1,12 @@
-from .pipe import Pipe, UnconnectedPipe
-# from .spec import PipeSpec
-from .pipe import DATA_SIZE, START_STOP, REVERSE
+from .spec import DATA_SIZE, START_STOP, PipeSpec
+from .endpoint import UnconnectedPipeEnd
 # from .uart import P_UART, P_UARTTx, P_UARTRx
 
 __all__ = [
-    'Pipe',
     'PipeSpec',
-    'UnconnectedPipe',
+    'UnconnectedPipeEnd',
     'DATA_SIZE',
     'START_STOP',
-    'REVERSE',
     # 'P_UART',
     # 'P_UARTTx',
     # 'P_UARTRx',
