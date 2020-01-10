@@ -38,7 +38,6 @@ class Top(Elaboratable):
         clk_freq = platform.default_clk_frequency
         uart_baud = 9600
         uart_divisor = int(clk_freq // uart_baud)
-        status_duration = int(0.1 * clk_freq)
         uart_pins = platform.request('uart')
 
         m = Module()
