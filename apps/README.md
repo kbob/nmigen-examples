@@ -78,6 +78,12 @@ iCEBreaker FPGA.
 
    The serial setup is the same as `receive_uart` above.
 
+ * **pipe-othercase-uart** - echo characters from UART.<br>
+   Library modules: `UART`, `PipeSpec`, `Pipeline`
+
+   Same function as `othercase-uart`.  But this one uses the
+   Pipe abstraction.
+
  * **hex-uart** - display characters' hex values.<br>
    Library modules: `seven_segment.digit_pattern`, `seven_segment.driver`,
    `UART`

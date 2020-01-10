@@ -1,6 +1,10 @@
 #!/usr/bin/env nmigen
 
 """
+
+# **This module is obsolete.  It hasn't been removed because**
+# **the doc hasn't been moved to the new API.**
+
 Pipe -- unidirectional data transfer with handshaking.
 
 Pipes provide a framework and set of conventions that allows modules

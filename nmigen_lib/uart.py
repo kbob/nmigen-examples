@@ -40,7 +40,8 @@ class UART(Elaboratable):
         m = Module()
         tx = UARTTx(divisor=self.divisor, data_bits=self.data_bits)
         rx = UARTRx(divisor=self.divisor, data_bits=self.data_bits)
-        m.submodules += [tx, rx]
+        m.submodules.tx = tx
+        m.submodules.rx = rx
         m.d.comb += [
             tx.tx_data.eq(self.tx_data),
             tx.tx_trg.eq(self.tx_trg),
@@ -78,6 +79,7 @@ class UARTTx(Elaboratable):
         tx_bit_count = Signal(range(-1, self.data_bits))
 
         m = Module()
+
         with m.If(tx_fast_count[-1]):
             with m.FSM():
                 with m.State('IDLE'):
@@ -93,10 +95,13 @@ class UARTTx(Elaboratable):
                     with m.Else():
                         m.d.sync += [
                             self.tx_rdy.eq(True),
+                            tx_fast_count.eq(-1),
                         ]
+                        m.next = 'IDLE'
                 with m.State('DATA'):
                     with m.If(tx_bit_count[-1]):
                         m.d.sync += [
+                            self.tx_rdy.eq(False),
                             self.tx_pin.eq(1),  # stop bit
                             tx_fast_count.eq(self.divisor - 2),
                         ]
@@ -113,7 +118,8 @@ class UARTTx(Elaboratable):
                     m.d.sync += [
                         # self.tx_pin.eq(1),
                         self.tx_rdy.eq(True),
-                        tx_fast_count.eq(self.divisor - 2),
+                        # tx_fast_count.eq(self.divisor - 2),
+                        tx_fast_count.eq(-1),
                     ]
                     m.next = 'IDLE'
 
@@ -244,16 +250,29 @@ class UARTRx(Elaboratable):
 if __name__ == '__main__':
     divisor = 20
     design = UART(divisor=divisor)
-    with Main(design).sim as sim:
+
+    # Workaround nmigen issue #280
+    m = Module()
+    m.submodules.design = design
+    tx_data = Signal(8)
+    tx_trg = Signal()
+    m.d.comb += design.tx_data.eq(tx_data)
+    m.d.comb += design.tx_trg.eq(tx_trg)
+
+    #280 with Main(design).sim as sim:
+    with Main(m).sim as sim:
 
         @sim.sync_process
         def send_char():
             char = 'Q'
             yield from delay(2)
-            yield design.tx_data.eq(ord(char))
-            yield design.tx_trg.eq(True)
+            #280 yield design.tx_data.eq(ord(char))
+            #280 yield design.tx_trg.eq(True)
+            yield tx_data.eq(ord(char))
+            yield tx_trg.eq(True)
             yield
-            yield design.tx_trg.eq(False)
+            #280 yield design.tx_trg.eq(False)
+            yield tx_trg.eq(False)
             yield from delay(10 * divisor + 2)
 
         @sim.sync_process

@@ -23,7 +23,7 @@ class P_UART(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        tx = P_UARTTx(divisor=self.divisor, data_bits=self.data_bits)
+        tx = P_UARTTx(self.divisor, self.data_bits, self.tx_outlet)
         rx = P_UARTRx(self.divisor, self.data_bits, self.rx_inlet)
         m.submodules.tx = tx
         m.submodules.rx = rx
@@ -33,16 +33,30 @@ class P_UART(Elaboratable):
         ]
         return m
 
+
 class P_UARTTx(Elaboratable):
 
-    def __init__(self, divisor, data_bits, inlet=None):
+    def __init__(self, divisor, data_bits, outlet=None):
+        if outlet is None:
+            outlet = PipeSpec(data_bits).outlet()
+        self.divisor = divisor
+        self.data_bits = data_bits
+
         self.tx_pin = Signal()
-        ...
+        self.outlet = outlet
 
     def elaborate(self, platform):
         m = Module()
-        ...
+        tx = UARTTx(self.divisor, self.data_bits)
+        m.submodules.tx = tx
+        m.d.comb += [
+            self.tx_pin.eq(tx.tx_pin),
+            self.outlet.o_ready.eq(tx.tx_rdy),
+            tx.tx_trg.eq(self.outlet.i_valid & self.outlet.o_ready),
+            tx.tx_data.eq(self.outlet.i_data),
+        ]
         return m
+
 
 class P_UARTRx(Elaboratable):
 
@@ -80,7 +94,11 @@ if __name__ == '__main__':
     m = Module()
     m.submodules.design = design
     i_ready = Signal()
+    i_valid = Signal()
+    i_data = Signal(8)
     m.d.comb += design.rx_inlet.i_ready.eq(i_ready)
+    m.d.comb += design.tx_outlet.i_valid.eq(i_valid)
+    m.d.comb += design.tx_outlet.i_data.eq(i_data)
 
     #280 with Main(design).sim as sim:
     with Main(m).sim as sim:
@@ -91,7 +109,7 @@ if __name__ == '__main__':
             char = chr(0x95) # Test high bit
             yield design.rx_pin.eq(1)
             yield from delay(3)
-            for i in range(2):
+            for i in range(3):
                 # Start bit
                 yield design.rx_pin.eq(0)
                 yield from delay(divisor)
@@ -123,3 +141,18 @@ if __name__ == '__main__':
                     #280 yield design.rx_inlet.i_ready.eq(False)
                     yield i_ready.eq(False)
                 yield
+
+        @sim.sync_process
+        def send_char():
+            yield from delay(2)
+            yield Passive()
+            for char in 'QRS':
+                #280 yield design.tx_outlet.i_data.eq(ord(char))
+                #280 yield design.tx_outlet.i_valid.eq(True)
+                yield i_data.eq(ord(char))
+                yield i_valid.eq(True)
+                yield
+                while not (yield design.tx_outlet.o_ready):
+                    yield
+            #280 yield design.tx_outlet.i_valid.eq(False)
+            yield i_valid.eq(False)
