@@ -68,6 +68,7 @@ class P_UARTRx(Elaboratable):
 
         self.rx_pin = Signal()
         self.inlet = inlet
+        self.dbg = Signal(4)
 
     def elaborate(self, platform):
         m = Module()
@@ -75,6 +76,7 @@ class P_UARTRx(Elaboratable):
         m.submodules.rx = rx
         m.d.comb += [
             rx.rx_pin.eq(self.rx_pin),
+            self.dbg.eq(rx.dbg),
         ]
         with m.If(rx.rx_rdy):
             m.d.sync += [
@@ -83,6 +85,8 @@ class P_UARTRx(Elaboratable):
             ]
         with m.If(self.inlet.sent()):
             m.d.sync += self.inlet.o_valid.eq(False)
+        m.d.comb += [
+        ]
         return m
 
 

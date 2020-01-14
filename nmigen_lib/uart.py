@@ -158,13 +158,19 @@ class UARTRx(Elaboratable):
         rx_bits = Signal(range(-1, self.data_bits - 1))
         rx_resync_max = 10 * self.divisor - 2
         rx_resync_counter = Signal(range(-1, rx_resync_max + 1))
+        rx_pin = Signal(reset=1)
+        rx_pin1 = Signal(reset=1)
 
         m = Module()
         m.d.comb += self.dbg[0].eq(rx_counter[-1])  # XXX
+        m.d.sync += [
+            rx_pin.eq(rx_pin1),
+            rx_pin1.eq(self.rx_pin),
+        ]
         with m.If(rx_counter[-1]):
             with m.FSM():
                 with m.State('IDLE'):
-                    with m.If(~self.rx_pin):
+                    with m.If(~rx_pin):
                         m.d.sync += [
                             rx_data.eq(0),
                             self.rx_rdy.eq(False),
@@ -180,7 +186,7 @@ class UARTRx(Elaboratable):
                         ]
                         m.next = 'IDLE'
                 with m.State('START'):
-                    with m.If(self.rx_pin):
+                    with m.If(rx_pin):
                         m.d.sync += [
                             self.rx_err.eq(True),
                             rx_counter.eq(-1),
@@ -195,7 +201,7 @@ class UARTRx(Elaboratable):
                         m.next = 'DATA'
                 with m.State('DATA'):
                     m.d.sync += [
-                        rx_data.eq(Cat(rx_data[1:], self.rx_pin)),
+                        rx_data.eq(Cat(rx_data[1:], rx_pin)),
                         rx_counter.eq(self.divisor - 2),
                     ]
                     with m.If(rx_bits[-1]):
@@ -206,7 +212,7 @@ class UARTRx(Elaboratable):
                         ]
                         m.next = 'DATA'
                 with m.State('STOP'):
-                    with m.If(~self.rx_pin):
+                    with m.If(~rx_pin):
                         m.d.sync += [
                             self.rx_err.eq(True),
                             rx_resync_counter.eq(rx_resync_max),
@@ -225,7 +231,7 @@ class UARTRx(Elaboratable):
                         self.rx_err.eq(False),
                         rx_counter.eq(-1),
                     ]
-                    with m.If(self.rx_pin):
+                    with m.If(rx_pin):
                         with m.If(rx_resync_counter[-1]):
                             m.next = 'IDLE'
                         with m.Else():
@@ -273,7 +279,7 @@ if __name__ == '__main__':
             yield
             #280 yield design.tx_trg.eq(False)
             yield tx_trg.eq(False)
-            yield from delay(10 * divisor + 2)
+            yield from delay(10 * divisor + 4)
 
         @sim.sync_process
         def recv_char():
