@@ -14,8 +14,8 @@ class CaseBender(Elaboratable):
 
     def __init__(self):
         spec = PipeSpec(8)
-        self.char_outlet = spec.outlet()
-        self.char_inlet = spec.inlet()
+        self.char_in = spec.outlet()
+        self.char_out = spec.inlet()
 
     def elaborate(self, platform):
 
@@ -25,9 +25,9 @@ class CaseBender(Elaboratable):
         def other_case(c):
             return Mux(is_alpha(c), c ^ 0x20, c)
         m.d.comb += [
-            self.char_inlet.o_valid.eq(self.char_outlet.i_valid),
-            self.char_inlet.o_data.eq(other_case(self.char_outlet.i_data)),
-            self.char_outlet.o_ready.eq(self.char_inlet.i_ready),
+            self.char_out.o_valid.eq(self.char_in.i_valid),
+            self.char_out.o_data.eq(other_case(self.char_in.i_data)),
+            self.char_in.o_ready.eq(self.char_out.i_ready),
         ]
         return m
 
