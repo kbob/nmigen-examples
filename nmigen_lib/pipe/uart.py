@@ -14,8 +14,8 @@ class P_UART(Elaboratable):
 
         data_spec = PipeSpec(data_bits)
 
-        self.tx_outlet = data_spec.outlet()
-        self.rx_inlet = data_spec.inlet()
+        self.tx_in = data_spec.outlet()
+        self.rx_out = data_spec.inlet()
 
         self.tx_pin = Signal()
         self.rx_pin = Signal()
@@ -23,8 +23,8 @@ class P_UART(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        tx = P_UARTTx(self.divisor, self.data_bits, self.tx_outlet)
-        rx = P_UARTRx(self.divisor, self.data_bits, self.rx_inlet)
+        tx = P_UARTTx(self.divisor, self.data_bits, self.tx_in)
+        rx = P_UARTRx(self.divisor, self.data_bits, self.rx_out)
         m.submodules.tx = tx
         m.submodules.rx = rx
         m.d.comb += [
@@ -43,7 +43,7 @@ class P_UARTTx(Elaboratable):
         self.data_bits = data_bits
 
         self.tx_pin = Signal()
-        self.outlet = outlet
+        self.tx_in = outlet
 
     def elaborate(self, platform):
         m = Module()
@@ -51,9 +51,9 @@ class P_UARTTx(Elaboratable):
         m.submodules.tx = tx
         m.d.comb += [
             self.tx_pin.eq(tx.tx_pin),
-            self.outlet.o_ready.eq(tx.tx_rdy),
-            tx.tx_trg.eq(self.outlet.i_valid & self.outlet.o_ready),
-            tx.tx_data.eq(self.outlet.i_data),
+            self.tx_in.o_ready.eq(tx.tx_rdy),
+            tx.tx_trg.eq(self.tx_in.i_valid & self.tx_in.o_ready),
+            tx.tx_data.eq(self.tx_in.i_data),
         ]
         return m
 
@@ -67,7 +67,7 @@ class P_UARTRx(Elaboratable):
         self.data_bits = data_bits
 
         self.rx_pin = Signal()
-        self.inlet = inlet
+        self.rx_out = inlet
         self.dbg = Signal(4)
 
     def elaborate(self, platform):
@@ -80,11 +80,11 @@ class P_UARTRx(Elaboratable):
         ]
         with m.If(rx.rx_rdy):
             m.d.sync += [
-                self.inlet.o_valid.eq(True),
-                self.inlet.o_data.eq(rx.rx_data),
+                self.rx_out.o_valid.eq(True),
+                self.rx_out.o_data.eq(rx.rx_data),
             ]
-        with m.If(self.inlet.sent()):
-            m.d.sync += self.inlet.o_valid.eq(False)
+        with m.If(self.rx_out.sent()):
+            m.d.sync += self.rx_out.o_valid.eq(False)
         m.d.comb += [
         ]
         return m
@@ -93,6 +93,8 @@ class P_UARTRx(Elaboratable):
 if __name__ == '__main__':
     divisor = 8
     design = P_UART(divisor=divisor)
+    design.tx_in.leave_unconnected()
+    design.rx_out.leave_unconnected()
 
     # Workaround nmigen issue #280
     m = Module()
@@ -100,9 +102,9 @@ if __name__ == '__main__':
     i_ready = Signal()
     i_valid = Signal()
     i_data = Signal(8)
-    m.d.comb += design.rx_inlet.i_ready.eq(i_ready)
-    m.d.comb += design.tx_outlet.i_valid.eq(i_valid)
-    m.d.comb += design.tx_outlet.i_data.eq(i_data)
+    m.d.comb += design.rx_out.i_ready.eq(i_ready)
+    m.d.comb += design.tx_in.i_valid.eq(i_valid)
+    m.d.comb += design.tx_in.i_data.eq(i_data)
 
     #280 with Main(design).sim as sim:
     with Main(m).sim as sim:
@@ -132,17 +134,17 @@ if __name__ == '__main__':
             count = 0
             yield Passive()
             while True:
-                valid = yield (design.rx_inlet.o_valid)
+                valid = yield (design.rx_out.o_valid)
                 if valid:
                     if not count:
                         count = 10
                 if count:
                     count -= 1
                     if count == 1:
-                        #280 yield design.rx_inlet.i_ready.eq(True)
+                        #280 yield design.rx_out.i_ready.eq(True)
                         yield i_ready.eq(True)
                 else:
-                    #280 yield design.rx_inlet.i_ready.eq(False)
+                    #280 yield design.rx_out.i_ready.eq(False)
                     yield i_ready.eq(False)
                 yield
 
@@ -151,12 +153,12 @@ if __name__ == '__main__':
             yield from delay(2)
             yield Passive()
             for char in 'QRS':
-                #280 yield design.tx_outlet.i_data.eq(ord(char))
-                #280 yield design.tx_outlet.i_valid.eq(True)
+                #280 yield design.tx_in.i_data.eq(ord(char))
+                #280 yield design.tx_in.i_valid.eq(True)
                 yield i_data.eq(ord(char))
                 yield i_valid.eq(True)
                 yield
-                while not (yield design.tx_outlet.o_ready):
+                while not (yield design.tx_in.o_ready):
                     yield
-            #280 yield design.tx_outlet.i_valid.eq(False)
+            #280 yield design.tx_in.i_valid.eq(False)
             yield i_valid.eq(False)
