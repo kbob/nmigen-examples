@@ -89,6 +89,10 @@ class PipeInlet(_PipeEnd):
     def flow_to(self, outlet):
         return self.connect_ends(self, outlet)
 
+    def leave_unconnected(self):
+        super().leave_unconnected()
+        self.i_ready.reset = 1      # Don't block senders
+
     prefices = {
         SignalDirection.UPSTREAM: 'i_',
         SignalDirection.DOWNSTREAM: 'o_',
