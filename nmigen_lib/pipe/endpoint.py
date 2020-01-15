@@ -7,9 +7,10 @@ from .desc import SignalDesc, SignalDirection
 
 
 # There is no need to warn about unconnected pipes if the program crashes.
-_silence_warnings = True
+_silence_warnings = False
 _old_excepthook = sys.excepthook
 def _new_excepthook(type, value, traceback):
+    global _silence_warnings
     _silence_warnings = True
     return _old_excepthook(type, value, traceback)
 sys.excepthook = _new_excepthook

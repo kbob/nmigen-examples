@@ -2,9 +2,10 @@
 
 import argparse
 
-from nmigen import *
+from nmigen import Array, Cat, Elaboratable, Module, Record, Signal, signed
 
 from nmigen_lib.util.main import Main
+
 
 class I2SOut(Elaboratable):
 
