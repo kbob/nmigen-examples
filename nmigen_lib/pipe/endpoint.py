@@ -38,9 +38,13 @@ class _PipeEnd(Record):
             )
 
     def leave_unconnected(self):
+        assert not self._connected, (
+            f'pipe endpoint {self} is already connected'
+        )
         self._connected = True  # suppress warning
 
-    def connect_ends(self, source, sink):
+    @staticmethod
+    def connect_ends(source, sink):
         assert isinstance(source, PipeInlet), (
             f'connection source must be PipeInlet, not {type(source)}'
         )
@@ -53,7 +57,7 @@ class _PipeEnd(Record):
         assert not sink._connected, (
             f'connecting already-connected pipe outlet {sink}'
         )
-        assert self._ends_are_compatible(source, sink), (
+        assert _PipeEnd._ends_are_compatible(source, sink), (
             f'connecting incompatible pipes {source._spec} and {sink._spec}'
         )
         source._connected = True
@@ -70,7 +74,8 @@ class _PipeEnd(Record):
             ]
         ]
 
-    def _ends_are_compatible(self, source, sink):
+    @staticmethod
+    def _ends_are_compatible(source, sink):
         # Take the easy way out for now.
         return source._spec == sink._spec
 
