@@ -4,6 +4,13 @@ from nmigen import *
 from nmigen_lib.util.main import Main
 
 
+def Seg7Record():
+    return Record((
+        ('segs', 7),
+        ('digit', 1),
+    ))
+
+
 class SevenSegDriver(Elaboratable):
 
     def __init__(self, clk_freq, min_refresh_freq=100, pwm_width=8):
@@ -14,10 +21,7 @@ class SevenSegDriver(Elaboratable):
         self.segment_patterns = Array((Signal(7), Signal(7)))
         self.pwm = Signal(pwm_width)
         self.digit_sel = Signal()
-        self.seg7 = Record([
-            ('segs', 7),
-            ('digit', 1),
-        ])
+        self.seg7 = Seg7Record()
 
         self.ports = (self.pwm, self.digit_sel)
         self.ports += tuple(self.segment_patterns)
@@ -45,14 +49,19 @@ class SevenSegDriver(Elaboratable):
                 self.digit_sel.eq(digit),
                 self.seg7.digit.eq(~digit),
             ]
-            with m.If(on):
-                m.d.sync += [
-                    self.seg7.segs.eq(~self.segment_patterns[digit]),
-                ]
-            with m.Else():
-                m.d.sync += [
-                    self.seg7.segs.eq(~0),
-                ]
+            m.d.sync += [
+                self.seg7.segs.eq(~Mux(on, self.segment_patterns[digit], 0))
+            ]
+            # with m.If(on):
+            #     m.d.sync += [
+            #         self.seg7.segs.eq(~self.segment_patterns[digit]),
+            #         # self.seg7.digit.eq(~digit),
+            #     ]
+            # with m.Else():
+            #     m.d.sync += [
+            #         self.seg7.segs.eq(~0),
+            #         # self.seg7.digit.eq(~digit),
+            #     ]
             return m
 
 
@@ -64,6 +73,6 @@ if __name__ == '__main__':
             yield design.segment_patterns[0].eq(0x0A)
             yield design.segment_patterns[1].eq(0x05)
             for i in range(4):
+                yield
                 yield design.pwm.eq(i)
                 yield from [None] * 32  # step 32 clocks
-            yield

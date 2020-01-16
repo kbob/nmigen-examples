@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.build import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from nmigen_lib import UARTRx, DigitPattern, SevenSegDriver
+from nmigen_lib import UARTRx, HexDisplay
 
 
 class OneShot(Elaboratable):
@@ -51,25 +51,20 @@ class Top(Elaboratable):
         uart_rx = UARTRx(divisor=uart_divisor)
         recv_status = OneShot(duration=status_duration)
         err_status = OneShot(duration=status_duration)
-        ones_segs = DigitPattern()
-        tens_segs = DigitPattern()
-        driver = SevenSegDriver(clk_freq, 100, 1)
+        hex_display = HexDisplay(clk_freq, 100, 1)
         m.submodules += [uart_rx, recv_status, err_status]
-        m.submodules += [ones_segs, tens_segs, driver]
+        m.submodules.hex_display = hex_display
         m.d.comb += [
             uart_rx.rx_pin.eq(uart_pins.rx),
             recv_status.trg.eq(uart_rx.rx_rdy),
             good_led.eq(recv_status.out),
             err_status.trg.eq(uart_rx.rx_err),
             bad_led.eq(err_status.out),
-            ones_segs.digit_in.eq(uart_rx.rx_data[:4]),
-            tens_segs.digit_in.eq(uart_rx.rx_data[4:]),
-            driver.segment_patterns[0].eq(ones_segs.segments_out),
-            driver.segment_patterns[1].eq(tens_segs.segments_out),
-            seg7_pins.eq(driver.seg7),
+            hex_display.i_data.eq(uart_rx.rx_data),
+            seg7_pins.eq(hex_display.o_seg7),
         ]
         m.d.sync += [
-            driver.pwm.eq(driver.pwm | uart_rx.rx_rdy),
+            hex_display.i_pwm.eq(hex_display.i_pwm | uart_rx.rx_rdy),
         ]
         return m
 
