@@ -56,7 +56,7 @@ iCEBreaker FPGA.
    DSP synthesis.
 
  * **receive-uart** - receive characters from UART.<br>
-   Library modules: `UART`
+   Library modules: `UART`, `OneShot`
 
    Receive characters from the FTDI UART.  Flashes the green and
    red LEDs to indicate good/bad reception.  When a digit 1-5
@@ -86,7 +86,7 @@ iCEBreaker FPGA.
 
  * **hex-uart** - display characters' hex values.<br>
    Library modules: `seven_segment.digit_pattern`, `seven_segment.driver`,
-   `UART`
+   `UART`, `OneShot`
 
    Receive characters from the FTDI UART and display their hexadecimal
    values on a seven segment display.

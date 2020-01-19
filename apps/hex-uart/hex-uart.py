@@ -4,34 +4,7 @@ from nmigen import *
 from nmigen.build import *
 from nmigen_boards.icebreaker import ICEBreakerPlatform
 
-from nmigen_lib import UARTRx, HexDisplay
-
-
-class OneShot(Elaboratable):
-
-    def __init__(self, duration):
-        self.duration = duration
-        self.trg = Signal()
-        self.out = Signal()
-        self.ports = (self.trg, self.out)
-
-    def elaborate(self, platform):
-        counter = Signal(range(-1, self.duration))
-        m = Module()
-        with m.If(self.trg):
-            m.d.sync += [
-                counter.eq(self.duration - 2),
-                self.out.eq(True),
-            ]
-        with m.Elif(counter[-1]):
-            m.d.sync += [
-                self.out.eq(False),
-            ]
-        with m.Else():
-            m.d.sync += [
-                counter.eq(counter - 1),
-            ]
-        return m
+from nmigen_lib import UARTRx, HexDisplay, OneShot
 
 
 class Top(Elaboratable):
@@ -56,10 +29,10 @@ class Top(Elaboratable):
         m.submodules.hex_display = hex_display
         m.d.comb += [
             uart_rx.rx_pin.eq(uart_pins.rx),
-            recv_status.trg.eq(uart_rx.rx_rdy),
-            good_led.eq(recv_status.out),
-            err_status.trg.eq(uart_rx.rx_err),
-            bad_led.eq(err_status.out),
+            recv_status.i_trg.eq(uart_rx.rx_rdy),
+            good_led.eq(recv_status.o_pulse),
+            err_status.i_trg.eq(uart_rx.rx_err),
+            bad_led.eq(err_status.o_pulse),
             hex_display.i_data.eq(uart_rx.rx_data),
             seg7_pins.eq(hex_display.o_seg7),
         ]

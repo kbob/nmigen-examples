@@ -9,6 +9,7 @@ else:
     from .counter import Counter
     from .i2s import I2SOut
     from .mul import Mul
+    from .oneshot import OneShot
     from .pll import PLL
     from .timer import Timer
     from .uart import UART, UARTTx, UARTRx
@@ -22,6 +23,7 @@ else:
         'HexDisplay',
         'I2SOut',
         'Mul',
+        'OneShot',
         'PLL',
         'Seg7Record',
         'Timer',
