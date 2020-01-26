@@ -91,6 +91,10 @@ class PipeInlet(_PipeEnd):
         """True when data is sent on the current clock."""
         return self.i_ready & self.o_valid
 
+    def full(self):
+        """True when receiver hasn't accepted last data."""
+        return self.o_valid & ~self.i_ready
+
     def flow_to(self, outlet):
         return self.connect_ends(self, outlet)
 
